@@ -1,0 +1,4 @@
+-r requirements.txt
+pytest==9.1.1
+# Cliente HTTP que usa el TestClient de Starlette (httpx clásico está obsoleto para esto)
+httpx2==2.12.0

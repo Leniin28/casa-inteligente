@@ -22,7 +22,11 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 Usuario demo creado al arrancar: `demo@casa.local` / `demo1234` (configurable en `.env`).
 
 `--host 0.0.0.0` hace que el backend acepte conexiones desde el móvil en la misma red. Si solo usas
-el emulador, basta con `127.0.0.1`.
+el emulador, basta con `127.0.0.1` (el emulador llega al PC a través de `10.0.2.2`). No lo expongas a
+Internet.
+
+Si la app muestra "No se pudo conectar con el backend" en Android 17+, comprueba que se concedió el
+permiso de red local ("Dispositivos cercanos"): sin él el sistema bloquea la conexión.
 
 ## Tests
 

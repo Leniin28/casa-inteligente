@@ -144,7 +144,10 @@ Detalles en [backend/README.md](backend/README.md).
 1. Arranca el backend (sección 6).
 2. En la app: pantalla de Login → **"Configurar servidor / modo demo"** (o *Más → Ajustes*).
 3. Fuente de datos: **Casa real (API)**. Revisa la URL del backend.
-4. Inicia sesión con `demo@casa.local` / `demo1234` (usuario creado por el backend) o regístrate.
+4. En Android 17 o superior la app pide el permiso de **red local** ("Dispositivos cercanos"):
+   acéptalo. Sin él, el sistema bloquea la conexión con la laptop y la app muestra
+   "No se pudo conectar con el backend".
+5. Inicia sesión con `demo@casa.local` / `demo1234` (usuario creado por el backend) o regístrate.
 
 Al cambiar de fuente se cierra la sesión y se borra la caché (el token de una fuente no vale en la otra).
 Si el backend no responde, la app muestra los últimos datos guardados en Room con un aviso.
@@ -156,14 +159,17 @@ Valor por defecto (en `app/build.gradle.kts`, `DEFAULT_BACKEND_URL`): `http://10
 
 | Dónde corre la app | URL |
 |---|---|
-| Emulador de Android Studio | `http://10.0.2.2:8000/` (10.0.2.2 = el `localhost` del PC) |
+| Emulador de Android Studio | `http://10.0.2.2:8000/` (10.0.2.2 = el PC visto desde el emulador) |
 | Móvil físico en la misma Wi-Fi | `http://<IP-LAN-de-la-laptop>:8000/` (ej. `http://192.168.1.50:8000/`) |
+
+En Android 17+ la app necesita además el permiso de red local ("Dispositivos cercanos"); sin él, la
+conexión se bloquea aunque la URL sea correcta.
 
 Para el **móvil físico**:
 
-1. Arranca uvicorn con `--host 0.0.0.0` (no solo `127.0.0.1`).
+1. Arranca uvicorn con `--host 0.0.0.0` (con `127.0.0.1` solo es accesible desde el propio PC y el emulador).
 2. Busca la IP de la laptop (`ipconfig` en Windows) y permite el puerto 8000 en el firewall.
-3. Añade esa IP en `app/src/main/res/xml/network_security_config.xml`. El backend local usa HTTP sin
+2. Añade esa IP en `app/src/main/res/xml/network_security_config.xml`. El backend local usa HTTP sin
    TLS, y la app **solo** permite tráfico sin cifrar hacia los hosts listados ahí (no se desactiva la
    seguridad global).
 

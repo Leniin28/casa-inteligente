@@ -1,4 +1,4 @@
-package com.ecore.demo2.ui.theme
+package com.ecore.demo2.core.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

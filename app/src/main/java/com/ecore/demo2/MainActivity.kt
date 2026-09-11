@@ -9,6 +9,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ecore.demo2.core.ui.theme.SmartHomeTheme
 import com.ecore.demo2.navigation.AppViewModel
+import com.ecore.demo2.navigation.LocalNetworkPermissionEffect
 import com.ecore.demo2.navigation.SmartHomeApp
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -21,7 +22,9 @@ class MainActivity : ComponentActivity() {
             val appViewModel: AppViewModel = hiltViewModel()
             val themeMode by appViewModel.themeMode.collectAsStateWithLifecycle()
             val isLoggedIn by appViewModel.isLoggedIn.collectAsStateWithLifecycle()
+            val dataSource by appViewModel.dataSource.collectAsStateWithLifecycle()
             SmartHomeTheme(themeMode = themeMode) {
+                LocalNetworkPermissionEffect(dataSource)
                 SmartHomeApp(isLoggedIn = isLoggedIn)
             }
         }

@@ -3,6 +3,9 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Android 17+ (API 37): necesario para conectar con el backend en la red local
+         (10.0.2.2 desde el emulador o la IP LAN de la laptop). Se pide solo en modo API. -->
+    <uses-permission android:name="android.permission.ACCESS_LOCAL_NETWORK" />
 
     <application
         android:name=".SmartHomeApplication"

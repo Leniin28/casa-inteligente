@@ -18,7 +18,8 @@ fun Throwable.toUserMessage(): String = when (this) {
         in 500..599 -> "Error en el servidor (${code()})."
         else -> "Error del servidor (${code()})."
     }
-    is IOException -> "No se pudo conectar con el backend. Revisa la URL en Ajustes."
+    is IOException -> "No se pudo conectar con el backend. Revisa la URL en Ajustes y que la app " +
+        "tenga el permiso de red local (dispositivos cercanos)."
     is SerializationException -> "El backend respondió con un formato inesperado."
     is IllegalArgumentException -> "Configuración no válida: ${message ?: "revisa la URL del backend"}"
     else -> message ?: GENERIC_ERROR

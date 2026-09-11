@@ -3,6 +3,7 @@ package com.ecore.demo2.navigation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ecore.demo2.core.datastore.SettingsRepository
+import com.ecore.demo2.core.model.DataSourceType
 import com.ecore.demo2.core.model.ThemeMode
 import com.ecore.demo2.core.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -29,6 +30,11 @@ class AppViewModel @Inject constructor(
     val themeMode: StateFlow<ThemeMode> = settingsRepository.settings
         .map { it.themeMode }
         .stateIn(viewModelScope, SharingStarted.Eagerly, ThemeMode.SYSTEM)
+
+    /** null mientras se leen los ajustes. Se usa para pedir el permiso de red local en modo API. */
+    val dataSource: StateFlow<DataSourceType?> = settingsRepository.settings
+        .map { it.dataSource }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     init {
         viewModelScope.launch {

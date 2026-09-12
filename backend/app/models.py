@@ -5,6 +5,7 @@ Las fechas se guardan como UTC sin zona horaria (SQLite no guarda tzinfo).
 
 from datetime import UTC, datetime
 
+from sqlalchemy import UniqueConstraint
 from sqlmodel import Field, SQLModel
 
 
@@ -43,3 +44,30 @@ class AlertReadState(SQLModel, table=True):
 
     alert_id: str = Field(primary_key=True)
     read_at: datetime = Field(default_factory=utcnow_naive)
+
+
+class TelemetryReading(SQLModel, table=True):
+    """Un paquete de telemetría normalizada (POST /api/telemetry). Sin nombres de sensores físicos.
+
+    Las columnas de un bloque ausente quedan a NULL. Los `*_delta` los calcula el backend al
+    ingerir (incremento desde la lectura anterior del mismo dispositivo) para que los totales
+    diarios, el historial y los presupuestos sean simples SUM.
+    """
+
+    __tablename__ = "telemetry_readings"
+    __table_args__ = (UniqueConstraint("device_id", "timestamp"),)
+
+    id: int | None = Field(default=None, primary_key=True)
+    device_id: str = Field(index=True)
+    timestamp: datetime = Field(index=True)  # instante de la medida
+    received_at: datetime = Field(index=True)  # instante en que llegó al backend
+
+    voltage: float | None = None  # V
+    current: float | None = None  # A
+    power: float | None = None  # W
+    energy_kwh: float | None = None  # contador acumulado del dispositivo
+    energy_delta_kwh: float | None = None
+
+    flow_liters_per_minute: float | None = None
+    total_liters: float | None = None  # contador acumulado del dispositivo
+    liters_delta: float | None = None

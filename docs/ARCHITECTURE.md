@@ -96,7 +96,7 @@ El `Clock` inyectable permite tests reproducibles con una hora fija.
 
 ```
 routers (HTTP) ──► services/providers.DataProvider ──► DemoDataProvider (simulator.py)
-      │                                               └─ (futuro) SensorDataProvider ← lecturas del ESP32
+      │                                               └─ TelemetryDataProvider ← telemetry_readings ← POST /api/telemetry (ESP32)
       └──► SQLite (usuarios, sesiones, límites de presupuesto, alertas leídas)
 ```
 

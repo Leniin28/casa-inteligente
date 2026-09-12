@@ -10,7 +10,7 @@ Base: `http://<host>:8000`. Documentación interactiva generada por FastAPI en `
 - Enums en minúsculas: `"probably_active"`, `"critical"`, `"electricity"`.
 - Periodos: `day` (24 registros horarios), `week` (7 diarios), `month` (30 diarios).
 - Autenticación: `Authorization: Bearer <token>` en todo `/api/*` salvo login, registro,
-  password-reset y `/api/system/status`.
+  password-reset, `/api/system/status` y `/api/telemetry` (este usa `X-Device-Key`).
 - Errores: `{"detail": "mensaje"}` con 401 (sesión), 404 (no existe), 409 (email duplicado), 422 (validación).
 
 Los campos nuevos que añada el backend no rompen la app (se ignoran los desconocidos).
@@ -26,9 +26,17 @@ Los campos nuevos que añada el backend no rompen la app (se ignoran los descono
 ### `GET /api/system/status` (público)
 ```json
 {"backend_connected": true, "esp32_connected": true,
- "last_update": "2026-09-11T18:30:00Z", "data_source": "demo"}
+ "last_update": "2026-09-11T18:30:00Z", "data_source": "demo", "device_id": null}
 ```
-`data_source` es el modo del backend: `demo` (simulado) o, en el futuro, `sensors`.
+`data_source` es el modo del backend: `demo` (simulado) o `sensors` (telemetría del ESP32).
+En `sensors`, `last_update` es la recepción del último paquete, `esp32_connected` indica si llegó
+dentro del timeout y `device_id` quién lo envió. Ver [TELEMETRY-CONTRACT.md](TELEMETRY-CONTRACT.md).
+
+## Telemetría (ESP32 → backend)
+
+`POST /api/telemetry` con cabecera `X-Device-Key` (no usa el token de usuario). 201 guardado,
+200 repetido, 401 clave, 422 validación, 503 ingesta deshabilitada. Contrato completo en
+[TELEMETRY-CONTRACT.md](TELEMETRY-CONTRACT.md).
 
 ## Autenticación
 

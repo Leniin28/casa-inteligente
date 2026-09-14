@@ -1,0 +1,61 @@
+name: Android CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+# Un nuevo push a un PR cancela la ejecución anterior de ese mismo PR.
+# En master no se cancela nada: cada commit conserva su resultado.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build, test y lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      # gradle/gradle-daemon-jvm.properties exige JDK 25 para el daemon de Gradle
+      # (el mismo que trae Android Studio). Las fuentes compilan a Java 11.
+      - name: Configurar JDK 25
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: gradle
+
+      # gradlew está versionado sin bit de ejecución (se creó en Windows).
+      - name: Permitir ejecutar gradlew
+        run: chmod +x gradlew
+
+      - name: Compilar (assembleDebug)
+        run: ./gradlew assembleDebug
+
+      - name: Tests unitarios
+        run: ./gradlew test
+
+      - name: Lint
+        run: ./gradlew lint
+
+      # Solo si algo falla: informes HTML/XML pequeños para ver el motivo sin reproducirlo.
+      - name: Subir informes de tests y lint
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: android-reports
+          path: |
+            app/build/reports/tests/
+            app/build/reports/lint-results-*.*
+          if-no-files-found: ignore
+          retention-days: 7

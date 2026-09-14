@@ -43,7 +43,9 @@ Variables con prefijo `SMARTHOME_` (ver `.env.example`):
 | Variable | Por defecto | Descripción |
 |---|---|---|
 | `SMARTHOME_DATABASE_URL` | `sqlite:///./smarthome.db` | Base de datos |
-| `SMARTHOME_DATA_MODE` | `demo` | Origen de los datos |
+| `SMARTHOME_DATA_MODE` | `demo` | `demo` (simulado) o `sensors` (telemetría del ESP32) |
+| `SMARTHOME_DEVICE_API_KEY` | vacía (ingesta deshabilitada) | Clave `X-Device-Key` del ESP32, ≥ 16 caracteres |
+| `SMARTHOME_ESP32_TIMEOUT_SECONDS` | `60` | Sin paquetes durante este tiempo → ESP32 desconectado |
 | `SMARTHOME_TIMEZONE` | zona del sistema | Para calcular "hoy" |
 | `SMARTHOME_SESSION_TTL_HOURS` | `72` | Duración de la sesión |
 | `SMARTHOME_SEED_DEMO_USER` | `true` | Crear usuario demo |
@@ -59,8 +61,10 @@ No hay secretos en el repositorio. `.env` y `*.db` están en `.gitignore`.
 | `app/routers/data.py` | dashboard, electricidad, agua, dispositivos, alertas, presupuestos, historial |
 | `app/routers/assistant.py` | chat del asistente |
 | `app/routers/system.py` | `/health` y estado del sistema |
+| `app/routers/telemetry.py` | `POST /api/telemetry` (ingesta del ESP32, clave de dispositivo) |
 | `app/services/simulator.py` | simulador determinista (igual que el de Android) |
-| `app/services/providers.py` | `DataProvider`: capa que adapta el hardware |
+| `app/services/providers.py` | `DataProvider`: capa que adapta el hardware; elige demo o sensors |
+| `app/services/telemetry.py` | ingesta de telemetría y `TelemetryDataProvider` (modo sensors) |
 | `app/services/budgets.py` | proyección de presupuestos |
 | `app/services/assistant.py` | respuestas del asistente (reglas; futuro: IA local) |
 | `app/security.py` | PBKDF2-SHA256 y tokens de sesión |
@@ -74,6 +78,7 @@ No hay secretos en el repositorio. `.env` y `*.db` están en `.gitignore`.
 
 ## Próximos pasos (fuera de esta fase)
 
-- **ESP32 real**: endpoint de ingesta (o MQTT) que guarde lecturas en SQLite + `SensorDataProvider`
-  que las lea. Los routers y la app no cambian.
+- **ESP32 real**: el backend ya recibe telemetría normalizada (ver
+  [docs/ESP32-INTEGRATION.md](../docs/ESP32-INTEGRATION.md)); falta el firmware. Mientras tanto,
+  `tools/esp32_simulator/` envía telemetría real por HTTP.
 - **IA local**: sustituir `generate_reply` en `app/services/assistant.py` por la llamada al modelo local.

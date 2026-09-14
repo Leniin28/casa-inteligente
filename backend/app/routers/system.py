@@ -12,12 +12,7 @@ router = APIRouter()
 
 
 def build_status(provider: DataProvider, now: datetime) -> SystemStatusOut:
-    return SystemStatusOut(
-        backend_connected=True,
-        esp32_connected=provider.esp32_connected(now),
-        last_update=now.astimezone(UTC),
-        data_source=provider.mode,
-    )
+    return SystemStatusOut(backend_connected=True, data_source=provider.mode, **provider.connection(now))
 
 
 @router.get("/health", response_model=HealthOut, tags=["system"])

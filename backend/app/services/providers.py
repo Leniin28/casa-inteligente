@@ -1,16 +1,22 @@
 """Proveedores de datos: la capa que adapta el hardware al contrato de la API.
 
-Android nunca ve sensores concretos (INA226, PZEM, YF-S401...). Para conectar hardware
-real se añade otra clase que cumpla `DataProvider` (p. ej. `SensorDataProvider`, que lea
-las lecturas que el ESP32 guarde en la BD) y se selecciona con SMARTHOME_DATA_MODE.
-Los routers y la app Android no cambian.
+Android nunca ve sensores concretos (INA226, PZEM, YF-S401...). SMARTHOME_DATA_MODE elige:
+
+* `demo`: `DemoDataProvider`, datos simulados deterministas (sin ESP32).
+* `sensors`: `TelemetryDataProvider`, telemetría normalizada que el ESP32 envía a
+  POST /api/telemetry y se guarda en la BD.
+
+Los routers y la app Android no cambian entre modos.
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Protocol
+
+from sqlalchemy import Engine
 
 from app.config import Settings
 from app.services.simulator import DemoSimulator
+from app.services.telemetry import TelemetryDataProvider
 
 
 class DataProvider(Protocol):
@@ -24,7 +30,8 @@ class DataProvider(Protocol):
     def alerts(self, now: datetime) -> list[dict]: ...
     def history(self, period: str, now: datetime) -> list[dict]: ...
     def month_usage(self, resource_type: str, now: datetime) -> float: ...
-    def esp32_connected(self, now: datetime) -> bool: ...
+    # {"esp32_connected": bool, "last_update": datetime | None, "device_id": str | None}
+    def connection(self, now: datetime) -> dict: ...
 
 
 class DemoDataProvider:
@@ -59,11 +66,19 @@ class DemoDataProvider:
     def month_usage(self, resource_type: str, now: datetime) -> float:
         return self.sim.month_usage(resource_type, now)
 
-    def esp32_connected(self, now: datetime) -> bool:
-        return True  # simulado
+    def connection(self, now: datetime) -> dict:
+        return {"esp32_connected": True, "last_update": now.astimezone(UTC), "device_id": None}  # simulado
 
 
-def build_provider(settings: Settings) -> DataProvider:
+def build_provider(settings: Settings, engine: Engine) -> DataProvider:
+    if settings.data_mode == "sensors":
+        return TelemetryDataProvider(
+            engine,
+            tz=settings.tz(),
+            electricity_price=settings.electricity_price_per_kwh,
+            water_price=settings.water_price_per_liter,
+            timeout_seconds=settings.esp32_timeout_seconds,
+        )
     simulator = DemoSimulator(
         tz=settings.tz(),
         electricity_price=settings.electricity_price_per_kwh,
